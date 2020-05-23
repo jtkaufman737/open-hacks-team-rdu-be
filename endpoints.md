@@ -19,11 +19,11 @@ If authenticated returns status 200
 
 ```
 { 
-   username: ...
-   password: ... 
-   email:    ... 
-   phone:    ... 
-   textEnabled: true/false
+   username: ... ,
+   password: ... ,
+   email:    ... ,
+   phone:    ... ,
+   textEnabled: true/false,
    emailEnabled: true/false
 } 
 ```
