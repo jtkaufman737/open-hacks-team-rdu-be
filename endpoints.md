@@ -2,7 +2,21 @@
 
 #### GET 
 
-If authenticated returns status 200 
+If authenticated: 
+```
+{ 
+  status: 200, 
+  message: 'Logged in'
+}
+``` 
+
+If not authenticated: 
+``` 
+{ 
+   status: 401, 
+   message: 'invalid credentials' 
+}
+```
 
 #### POST 
 
