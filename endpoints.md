@@ -6,12 +6,18 @@ If authenticated returns status 200
 
 #### POST 
 
-{ username: '', password: '' } 
+```
+{ 
+  username: ..., 
+  password: ... 
+} 
+```
 
 ## /signup 
 
 #### POST 
 
+```
 { 
    username: ...
    password: ... 
@@ -20,6 +26,7 @@ If authenticated returns status 200
    textEnabled: true/false
    emailEnabled: true/false
 } 
+```
 
 ^ Note, maybe those could be checkboxes...these will be translated into the notifications array 
 
@@ -27,4 +34,6 @@ If authenticated returns status 200
 
 #### POST 
 
-{ username: '' } 
+```
+{ username: ... } 
+```
