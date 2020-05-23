@@ -14,7 +14,7 @@ If not authenticated:
 ``` 
 { 
    status: 401, 
-   message: 'invalid credentials' 
+   message: 'Not logged in' 
 }
 ```
 
@@ -24,6 +24,15 @@ If not authenticated:
 { 
   username: ..., 
   password: ... 
+} 
+```
+
+If rejected: 
+
+``` 
+{ 
+   status: 401, 
+   message: 'Invalid credentials'
 } 
 ```
 
