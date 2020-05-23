@@ -1,3 +1,5 @@
+import schedule
+
 from flask import Flask, request, jsonify
 
 def create_app():
@@ -17,6 +19,10 @@ def create_app():
        # I was thinking if it gets a query string it can filter, if not it returns the whole list
 
     return app
+
+def notifications(user_notifications):
+
+
 
 
 if __name__ == '__main__':
