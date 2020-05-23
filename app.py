@@ -1,9 +1,15 @@
+import os
 import schedule
+import sendgrid
 
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 def create_app():
     app = Flask(__name__)
+    load_dotenv()
 
     @app.route('/login')
     def login():
@@ -20,10 +26,24 @@ def create_app():
 
     return app
 
-def notifications(user_notifications):
+def send_notifications():
+    pass
 
+def send_sms(phone):
+    pass
 
-
+def send_email(email, subscriptions):
+    message = Mail(
+        from_email='notifications@coronalert.app',
+        to_emails=email,
+        subject='CoronAlert Daily Notifications',
+        html_content='this is a test'
+    )
+    try:
+        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        response = sg.send(message)
+    except Exception as e:
+        print(e.message)
 
 if __name__ == '__main__':
     create_app().run()
