@@ -91,3 +91,17 @@ Can technically be empty
    emailEnabled: ... 
  } 
 ``` 
+
+## /current/<state_code>
+
+#### GET
+```
+{
+    "state_code": ..., // 2 character state code
+    "state_name": ..., // full textual state name
+    "positive_tests": ..., // number of positive tests as of current date
+    "total_tested": ..., // number of people tested ""
+    "recovered": ..., // number of people recovered ""
+    "deaths": ... // number of deaths ""
+}
+```
