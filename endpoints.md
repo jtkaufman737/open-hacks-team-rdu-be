@@ -57,6 +57,51 @@ If rejected:
 
 #### POST 
 
+Can technically be empty 
+
+## /location 
+
+#### GET 
+
+~Important to include the `_id` field here because I think we should use that to populate the subscriptions array...~ Actually there is weirdness around that, guess we can just use code  
+
 ```
-{ username: ... } 
+{ 
+ code: ... // state abbreviation 
+ name: ... // Full form name (for display purposes) 
+}
+```  
+
+## /subscribe/locations
+
+#### POST 
+
+```
+{ 
+   codes: [] ... // State abbreviation array 
+ } 
+``` 
+
+## /subscribe/alerts 
+
+#### PATCH
+```
+{ 
+   textEnabled: ... 
+   emailEnabled: ... 
+ } 
+``` 
+
+## /current/<state_code>
+
+#### GET
+```
+{
+    "state_code": ..., // 2 character state code
+    "state_name": ..., // full textual state name
+    "positive_tests": ..., // number of positive tests as of current date
+    "total_tested": ..., // number of people tested ""
+    "recovered": ..., // number of people recovered ""
+    "deaths": ... // number of deaths ""
+}
 ```
