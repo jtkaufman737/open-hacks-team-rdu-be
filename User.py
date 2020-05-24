@@ -1,15 +1,15 @@
 from flask_login import UserMixin
-from flask_login import LoginManager
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class User:
+class User(UserMixin):
     def __init__(self, username, password):
-        print('Init running!')
-        print(username)
-        print(password)
         self.username = username
         self.password = password
+
+    @property
+    def id(self):
+        return self.username
 
     def get_id(self, id):
         return self.username
