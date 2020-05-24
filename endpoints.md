@@ -73,3 +73,25 @@ If rejected:
  name: ... // Full form name (for display purposes) 
 }
 ```  
+
+## /subscribe
+
+#### POST 
+
+```
+{ 
+   username: ... 
+   code: ... // State abbreviation 
+ } 
+``` 
+
+#### PATCH 
+
+Doing patch instead of delete so we can receive multiple pieces of data 
+
+```
+{ 
+   username: ... 
+   code: ... 
+}
+``` 
