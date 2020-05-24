@@ -65,11 +65,10 @@ If rejected:
 
 #### GET 
 
-Important to include the `_id` field here because I think we should use that to populate the subscriptions array... 
+~Important to include the `_id` field here because I think we should use that to populate the subscriptions array...~ Actually there is weirdness around that, guess we can just use code  
 
 ```
 { 
- _id: ... 
  code: ... // state abbreviation 
  name: ... // Full form name (for display purposes) 
 }
