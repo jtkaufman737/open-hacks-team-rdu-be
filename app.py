@@ -1,7 +1,9 @@
 import os
+import requests
 import schedule
 import sendgrid
 import ssl
+import us
 
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -52,6 +54,26 @@ def create_app():
 
     def send_notifications():
         pass
+
+    @app.route('/current/<state>')
+    def get_current_state_data(state):
+        status_code = 400
+        response = 'Bad request'
+        if state is None:
+            response = dict(message='Please specify a state and try again')
+            status_code = 404
+            return response, status_code
+        state_response = requests.get(f'https://covidtracking.com/api/v1/states/{state}/current.json')
+        if state_response.status_code == 404:
+            return dict(message='State not found, please ensure you have specified a valid state code'), 404
+        state_data = state_response.json()
+        response = dict(state_code=state_data['state'],
+                        state_name=us.states.lookup(state).name,
+                        positive_tests=state_data['positive'],
+                        total_tested=state_data['totalTestResults'],
+                        recovered=state_data['recovered'],
+                        deaths=state_data['death'])
+        return response, status_code
 
     @app.route('/login', methods=['GET','POST'])
     def login():
@@ -153,6 +175,7 @@ def create_app():
         return { "status ": 200, "locations": locations }
 
     return app
+
 
 if __name__ == '__main__':
     create_app().run()
