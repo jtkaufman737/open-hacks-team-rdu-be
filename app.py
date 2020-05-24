@@ -209,7 +209,6 @@ def create_app():
               { '$set': { 'notifications': request.notifications }}
             )
 
-<<<<<<< HEAD
             response = dict(message='Update successful')
             status_code=204
             return response, status_code
@@ -225,13 +224,10 @@ def create_app():
         response = dict(message='Success')
         status_code=200
         return response, status_code
-=======
-            return { 'status': 204, 'message': 'Update successful'}
 
     @app.route('/locations')
     def location():
         return dict(locations=[dict(code=state.abbr, name=state.name) for state in us.states.STATES], status=200), 200
->>>>>>> dd6e9556b67c8bd7c8197b0faa59d96355893a61
 
     @app.route('/user', methods=['GET'])
     def user():
