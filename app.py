@@ -106,7 +106,6 @@ def create_app():
             return {'message': str(e)}, 500
         return response, status_code
 
-
     @app.route('/current/us')
     def get_current_us_data():
         status_code = 400
