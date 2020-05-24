@@ -24,17 +24,26 @@ def create_app():
 
     login = LoginManager(app)
 
-    def send_sms(phone):
-        account_sid = os.getenv('TWILIO_ACCOUNT_SID')
-        auth_token = os.getenv('TWILIO_AUTH_TOKEN')
-        client = Client(account_sid, auth_token)
-        message = client.messages.create(
-            body='this is a test',
-            messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
-            to=phone
-        )
-        print(message)
-        return message.sid
+    def send_sms(phone, msg):
+        try:
+            account_sid = os.getenv('TWILIO_ACCOUNT_SID')
+            auth_token = os.getenv('TWILIO_AUTH_TOKEN')
+            client = Client(account_sid, auth_token)
+            # message = client.messages.create(
+            #     body='this is a test',
+            #     messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
+            #     to=phone
+            # )
+            message = client.messages.create(
+                body=msg,
+                messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
+                to=phone
+            )
+
+            return message.sid
+        except Exception as e:
+            print(e)
+            return { 'status_code' : 500 }
 
     def send_email(email):
         message = Mail(
@@ -54,20 +63,25 @@ def create_app():
     def send_notifications():
         pass
 
-    @app.route('/digest', methods=['GET'])
+    @app.route('/digest', methods=['GET']) # This would be the backdoor manual way to trigger alerts, not sure how Rick was going to do it
     def digest():
         try:
-            users = []
             for usr in mongo.covalert.users.find():
-                del usr['_id']
-                users.append(usr)
-                print(usr['email'])
-
+                message = f'Hello { usr["username"] }! Here is your daily COVID tracking digest: \n\n'
                 for sub in usr['subscriptions']:
-                    print(sub)
+                    sub_data = get_current_single_state_data(sub)[0]
+                    # build subscription data
+                    message += f"State: { sub_data['state_name']}\n"
+                    message += f"Positive Tests: { sub_data['positive_tests'] }\n"
+                    message += f"Recovered: { sub_data['recovered'] }\n"
+                    message += f"Total Tested: { sub_data['total_tested'] }\n\n"
 
+                message += "As always from your friends at coronAlert, stay safe and we'll have more news soon."
 
-            response = { 'status_code': 200, 'data': users }
+                if len(usr['subscriptions']):
+                    send_sms(usr['phone'], message)
+
+            response = { 'status_code': 200 }
             return response
         except Exception as e:
             print(e)
@@ -261,8 +275,7 @@ def create_app():
         except Exception as e:
             status_code = 500
             response = { 'message': e }
-            return response, status_code 
-
+            return response, status_code
 
     return app
 
