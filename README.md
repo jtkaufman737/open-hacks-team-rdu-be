@@ -8,7 +8,7 @@ Our backend API utilizes Flask, Mongo, and the Twilio API to give users personal
 
 Here's an example text: 
 
-![image]('Image from iOS (3).jpg' "Twilio alert")
+![image](twilio.jpg "Twilio alert")
 
 # To run the app locally 
 
