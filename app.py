@@ -126,91 +126,120 @@ def create_app():
 
     @app.route('/login', methods=['GET','POST'])
     def login():
-        json = { 'username': 'abc123', 'password': 'abc123' }
-
         if request.method == 'GET':
             if current_user.is_authenticated:
-                return { 'status': 200, 'message': 'Logged in' }
+                response=dict(message='Logged in')
+                status_code=200
+                return response, status_code
             else:
-                return { 'status': 401, 'message':  'Invalid Credentials' }
+                response=dict('Invalid Credentials')
+                status_code=401
+                return response, status_code
         else:
-            user = mongo.covalert.users.find_one({ 'username': json['username'] })
+            try:
+                user = mongo.covalert.users.find_one({ 'username': request.json['username'] })
 
-            # user input plaintext, checks against hashed db version
-            if user and User.check_password(user['password'], json['password']):
-                load_user(json['username'])
-                session['user'] = { 'username': json['username'] }
-                return { 'status': 200, 'message': 'Logged in'}
-            else:
-                return { 'status': 401, 'message': 'Invalid Credentials'}
+                # user input plaintext, checks against hashed db version
+                if user and User.check_password(user['password'], request.json['password']):
+                    load_user(request.json['username'])
+                    session['user'] = { 'username': request.json['username'] }
+                    response = dict(message='Logged in')
+                    status_code=200
+                    return response, status_code
+                else:
+                    response = dict(message='Invalid Credentials')
+                    status_code=401
+                    return response, status_code
+            except Exception as e:
+                print(e)
 
     @app.route('/signup', methods=['POST'])
     def signup():
-        json = { 'username':'abc123',
-                 'phone':'9195924799' ,
-                 'email':'jtk.writes.code@protonmail.com',
-                 'password':'abc123',
-                 'textEnabled': 'true',
-                 'subscriptions': [],
-                 'emailEnabled': 'true'
-                }
-
-        json['notifications'] = []
-
-        if json['textEnabled']: json['notifications'].append('sms')
-        if json['emailEnabled']: json['notifications'].append('email')
-
-        # Clean up data not used by db
-        del json['textEnabled']
-        del json['emailEnabled']
-
-        # Create user instance for session
-        pwd = generate_password_hash(json['password'])
-        json['password'] = pwd
-        User(username=json['username'], password=pwd)
-
         try:
-            mongo.covalert.users.insert(json)
-            return { 'status': 201, 'message': 'Signup successful'}
-        except Exception as e:
-            return { 'status': 500, 'message': e}
+            request.json['notifications'] = []
 
-    @app.route('/logout')
+            if request.json['textEnabled']: request.json['notifications'].append('sms')
+            if request.json['emailEnabled']: request.json['notifications'].append('email')
+
+            # Clean up data not used by db
+            del request.json['textEnabled']
+            del request.json['emailEnabled']
+
+            # Create user instance for session
+            pwd = generate_password_hash(request.json['password'])
+            request.json['password'] = pwd
+            User(username=request.json['username'], password=pwd)
+
+            mongo.covalert.users.insert(request.json)
+            response = dict(message='Signup successful')
+            status_code=201
+            return response, status_code
+        except Exception as e:
+            print(e)
+            response = dict(message=f'Internal server error: {e}')
+            status_code=500
+            return response, status_code
+
+    @app.route('/logout', methods=['POST'])
     def logout():
         logout_user()
+        response = dict(message='OK')
+        status_code=200
+        return response, status_code
 
     @app.route('/subscribe/<identifier>', methods=['POST','PATCH'])
     def process_subscriptions(identifier):
         if identifier == 'locations':
-            json = { 'username' : current_user['username'], 'codes':['MD', 'NC', 'GA','CA'] }
-
             mongo.covalert.users.update(
-              { 'username' : json['username'] },
-              { '$set': { 'subscriptions': json['code'] }}
+              { 'username' : session['user']['username'] },
+              { '$set': { 'subscriptions': request.json['codes'] }}
             )
 
-            return { 'status': 204, 'message': 'Update successful'}
+            response = dict(message='Update successful')
+            status_code=204
+            return response, status_code
         else:
-            json = { 'username' :  current_user['username'], 'textEnabled': True, 'emailEnabled': False }
-            notifications = []
+            request.notifications = []
 
-            if json['textEnabled']: notifications.append('sms')
-            if json['emailEnabled']: notifications.append('email')
+            if request.json['textEnabled']: request.notifications.append('sms')
+            if request.json['emailEnabled']: request.notifications.append('email')
 
             mongo.covalert.users.update(
-              { 'username': json['username'] },
-              { '$set': { 'notifications': notifications }}
+              { 'username': session['user']['username'] },
+              { '$set': { 'notifications': request.notifications }}
             )
 
+<<<<<<< HEAD
+            response = dict(message='Update successful')
+            status_code=204
+            return response, status_code
+
+    @app.route('/locations')
+    def location():
+        locations = []
+
+        for loc in mongo.covalert.locations.find():
+            del loc['_id']
+            locations.append(loc)
+
+        response = dict(message='Success')
+        status_code=200
+        return response, status_code
+=======
             return { 'status': 204, 'message': 'Update successful'}
 
     @app.route('/locations')
     def location():
         return dict(locations=[dict(code=state.abbr, name=state.name) for state in us.states.STATES], status=200), 200
+>>>>>>> dd6e9556b67c8bd7c8197b0faa59d96355893a61
 
     @app.route('/user', methods=['GET'])
     def user():
-        return mongo.covalert.users.find_one({ 'username': current_user['username']})
+        user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
+        del user['_id']
+        response = { 'message': 'OK', 'data': user }
+        status_code = 200
+        return response, status_code
 
     @app.route('/user/subscriptions/current')
     def user_subscription_current_data():
