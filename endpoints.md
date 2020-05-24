@@ -57,9 +57,7 @@ If rejected:
 
 #### POST 
 
-```
-{ username: ... } 
-```
+Can technically be empty 
 
 ## /location 
 
@@ -80,7 +78,6 @@ If rejected:
 
 ```
 { 
-   username: ... 
    code: ... // State abbreviation 
  } 
 ``` 
@@ -91,7 +88,6 @@ Doing patch instead of delete so we can receive multiple pieces of data
 
 ```
 { 
-   username: ... 
    code: ... 
 }
 ``` 
@@ -101,7 +97,6 @@ Doing patch instead of delete so we can receive multiple pieces of data
 #### PATCH
 ```
 { 
-   username: ... 
    textEnabled: ... 
    emailEnabled: ... 
  } 
