@@ -71,10 +71,10 @@ def create_app():
                 for sub in usr['subscriptions']:
                     sub_data = get_current_single_state_data(sub)[0]
                     # build subscription data
-                    message += f"State: { sub_data['state_name']}\n"
-                    message += f"Positive Tests: { sub_data['positive_tests'] }\n"
-                    message += f"Recovered: { sub_data['recovered'] }\n"
-                    message += f"Total Tested: { sub_data['total_tested'] }\n\n"
+                    message += f"State: { sub_data['state_name']}"
+                    message += f"Positive Tests: { sub_data['positive_tests'] }"
+                    message += f"Recovered: { sub_data['recovered'] }"
+                    message += f"Total Tested: { sub_data['total_tested'] }\n"
 
                 message += "As always from your friends at coronAlert, stay safe and we'll have more news soon."
 
@@ -266,12 +266,11 @@ def create_app():
     @app.route('/user/subscriptions/current', methods=['GET'])
     def user_subscription_current_data():
         try:
-            user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
+            user = mongo.covalert.users.find_one({ 'username': session['user']['username'] })
             subs = user['subscriptions']
-            sub_data = [get_current_single_state_data(sub) for sub in subs]
-            response = { 'data': sub_data }
-            status_code = 200
-            return response, status_code
+            sub_data = [get_current_single_state_data(sub)[0] for sub in subs]
+            response = jsonify(sub_data)
+            return response
         except Exception as e:
             status_code = 500
             response = { 'message': e }
