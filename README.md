@@ -4,8 +4,11 @@ This application was borne out of the idea that it is challenging for those of u
 
 The application has the ability for a user to create customizable alerts, so that in addition to a US wide map they can track the specific statistics in states where their loved ones live.
 
-Our backend API utilizes Flask, Mongo, and the Twilio API to give users personalized alerts for states that their loved ones live in so they 
-can stay up to date on the lateset news. 
+Our backend API utilizes Flask, Mongo, and the Twilio API to give users personalized alerts for states that their loved ones live in so they can stay up to date on the lateset news. 
+
+Here's an example text: 
+
+![image]('Image from iOS (3).jpg' "Twilio alert")
 
 # To run the app locally 
 
