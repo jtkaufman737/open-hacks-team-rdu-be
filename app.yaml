@@ -1,0 +1,6 @@
+runtime: python37
+entrypoint: gunicorn -b :$PORT wsgi:app
+
+handlers:
+  - url: /.*
+    script: auto
