@@ -15,10 +15,11 @@ from flask_login import current_user, login_user, logout_user, login_required, L
 from flask_pymongo import MongoClient
 from User import User
 
+
 def create_app():
     app = Flask(__name__)
-    app.config.from_pyfile('settings.py')
     load_dotenv()
+    app.config.from_pyfile('settings.py')
 
     mongo = MongoClient(os.environ['MONGO_URI'], ssl=True,ssl_cert_reqs=ssl.CERT_NONE)
 
@@ -60,7 +61,7 @@ def create_app():
         return usr
 
     @app.route('/current/<state>')
-    def get_current_state_data(state):
+    def get_current_single_state_data(state):
         status_code = 400
         response = 'Bad request'
         if state is None:
@@ -79,9 +80,53 @@ def create_app():
                         deaths=state_data['death'])
         return response, status_code
 
+    @app.route('/current/states')
+    def get_current_all_states_data():
+        status_code = 400
+        response = 'Bad request'
+        try:
+            states_response = requests.get('https://covidtracking.com/api/v1/states/current.json')
+            states_data = states_response.json()
+            state_codes = [state.abbr for state in us.states.STATES]
+            state_generator = (state for state in states_data if state['state'] in state_codes)
+            state_list = list()
+            for state in state_generator:
+                state_list.append(dict(
+                    state_code=state['state'],
+                    state_name=us.states.lookup(state['state']).name,
+                    positive_tests=state['positive'],
+                    total_tested=state['totalTestResults'],
+                    recovered=state['recovered'],
+                    deaths=state['death']
+                ))
+            response = jsonify(state_list)
+            status_code = 200
+        except Exception as e:
+            print(str(e))
+            return {'message': str(e)}, 500
+        return response, status_code
+
+    @app.route('/current/us')
+    def get_current_us_data():
+        status_code = 400
+        response = 'Bad request'
+        try:
+            us_response = requests.get('https://covidtracking.com/api/v1/us/current.json')
+            us_data = us_response.json()[0]  # accessing [0] as tracking API returns US data only as single-item array
+            response = dict(
+                        positive_tests=us_data['positive'],
+                        total_tested=us_data['totalTestResults'],
+                        recovered=us_data['recovered'],
+                        deaths=us_data['death'])
+            status_code = 200
+        except Exception as e:
+            print(str(e))
+            return {'message': str(e)}, 500
+        return response, status_code
+
     @app.route('/login', methods=['GET','POST'])
     def login():
-        if request.method == 'GET': # Actually can probably toss this I don't think we're using it
+        if request.method == 'GET':
             if current_user.is_authenticated:
                 response=dict(message='Logged in')
                 status_code=200
@@ -164,6 +209,7 @@ def create_app():
               { '$set': { 'notifications': request.notifications }}
             )
 
+<<<<<<< HEAD
             response = dict(message='Update successful')
             status_code=204
             return response, status_code
@@ -179,6 +225,13 @@ def create_app():
         response = dict(message='Success')
         status_code=200
         return response, status_code
+=======
+            return { 'status': 204, 'message': 'Update successful'}
+
+    @app.route('/locations')
+    def location():
+        return dict(locations=[dict(code=state.abbr, name=state.name) for state in us.states.STATES], status=200), 200
+>>>>>>> dd6e9556b67c8bd7c8197b0faa59d96355893a61
 
     @app.route('/user', methods=['GET'])
     def user():
@@ -187,6 +240,10 @@ def create_app():
         response = { 'message': 'OK', 'data': user }
         status_code = 200
         return response, status_code
+
+    @app.route('/user/subscriptions/current')
+    def user_subscription_current_data():
+        print(user())
 
     return app
 
