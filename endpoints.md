@@ -74,7 +74,7 @@ If rejected:
 }
 ```  
 
-## /subscribe
+## /subscribe/locations
 
 #### POST 
 
@@ -94,4 +94,22 @@ Doing patch instead of delete so we can receive multiple pieces of data
    username: ... 
    code: ... 
 }
+``` 
+
+## /subscribe/alerts 
+
+#### POST 
+```
+{ 
+   textEnabled: ...
+   emailEnabled: ... 
+ } 
+``` 
+
+#### PATCH
+```
+{ 
+   textEnabled: ... 
+   emailEnabled: ... 
+ } 
 ``` 
