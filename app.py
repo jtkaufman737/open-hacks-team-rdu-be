@@ -15,6 +15,7 @@ from flask_login import current_user, login_user, logout_user, login_required, L
 from flask_pymongo import MongoClient
 from User import User
 
+
 def create_app():
     app = Flask(__name__)
     load_dotenv()
@@ -83,8 +84,9 @@ def create_app():
             headers=response.headers
         )
 
-    def send_notifications():
-        pass
+    @app.route('/')
+    def home():
+        return 'Welcome to CoronAlert!', 200
 
     @app.route('/digest', methods=['GET']) # This would be the backdoor manual way to trigger alerts, not sure how Rick was going to do it
     def digest():
