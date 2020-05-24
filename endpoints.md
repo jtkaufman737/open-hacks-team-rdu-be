@@ -78,18 +78,8 @@ Can technically be empty
 
 ```
 { 
-   code: ... // State abbreviation 
+   codes: [] ... // State abbreviation array 
  } 
-``` 
-
-#### PATCH 
-
-Doing patch instead of delete so we can receive multiple pieces of data 
-
-```
-{ 
-   code: ... 
-}
 ``` 
 
 ## /subscribe/alerts 
