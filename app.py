@@ -115,10 +115,15 @@ def create_app():
         # can structure this to allow delete or addition
         return True
 
-    @app.route('/location')
+    @app.route('/locations')
     def get():
-        # I was thinking if it gets a query string it can filter, if not it returns the whole list
-        return True
+        locations = []
+
+        for loc in mongo.covalert.locations.find():
+            del loc['_id']
+            locations.append(loc)
+
+        return { "status ": 200, "locations": locations }
 
     return app
 
