@@ -33,18 +33,17 @@ def create_app():
             for sub in subscriptions:
                 sub_data = get_current_single_state_data(sub)[0]
                 # build subscription data
-                print(type(sub_data))
                 msg_body += f"State: {sub_data['state_name']}\n"
                 msg_body += f"Positive Tests: {sub_data['positive_tests']}\n"
                 msg_body += f"Recovered: {sub_data['recovered']}\n"
-                msg_body += f"Total Tested: {sub_data['total_tested']}\n\n"
+                msg_body += f"Total Tested: {sub_data['total_tested']}\n"
+                msg_body += f"Deaths: {sub_data['deaths']}\n\n"
 
             msg_body += "As always from your friends at CoronAlert, stay safe and we'll have more news soon."
-            print(msg_body)
             message = client.messages.create(
                 body=msg_body,
                 messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
-                to='+15854726743'
+                to=phone
             )
 
             return message.sid
@@ -52,12 +51,23 @@ def create_app():
             print(e)
             return { 'status_code' : 500 }
 
-    def send_email(email):
+    def send_email(email, subscriptions):
+        msg_body = f'Hello! Here is your daily COVID tracking digest: <br/><br/>'
+        for sub in subscriptions:
+            sub_data = get_current_single_state_data(sub)[0]
+            # build subscription data
+            msg_body += f"State: {sub_data['state_name']}<br/>"
+            msg_body += f"Positive Tests: {sub_data['positive_tests']}<br/>"
+            msg_body += f"Recovered: {sub_data['recovered']}<br/>"
+            msg_body += f"Total Tested: {sub_data['total_tested']}<br/>"
+            msg_body += f"Deaths: {sub_data['deaths']}<br/><br/>"
+
+        msg_body += "As always from your friends at CoronAlert, stay safe and we'll have more news soon."
         message = Mail(
             from_email='notifications@ronalert.com',
             to_emails=email,
             subject='CoronAlert Daily Notifications',
-            html_content='this is a test'
+            html_content=msg_body
         )
         try:
             sg = SendGridAPIClient(api_key=os.getenv('SENDGRID_API_KEY'))
@@ -82,6 +92,10 @@ def create_app():
             for usr in mongo.covalert.users.find({'notifications': 'sms'}):
                 if len(usr['subscriptions']):
                     send_sms(usr['phone'], usr['subscriptions'])
+
+            for usr in mongo.covalert.users.find({'notifications': 'email'}):
+                if len(usr['subscriptions']):
+                    send_email(usr['email'], usr['subscriptions'])
 
             response = { 'status_code': 200 }
             return response
