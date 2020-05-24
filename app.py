@@ -1,20 +1,57 @@
+import os
+import schedule
+import sendgrid
+import ssl
+
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from twilio.rest import Client
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from flask_pymongo import MongoClient
 from User import User
 
-import os
-import ssl
 
 def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('settings.py')
+    load_dotenv()
 
     mongo = MongoClient(os.environ['MONGO_URI'], ssl=True,ssl_cert_reqs=ssl.CERT_NONE)
 
     login = LoginManager(app)
 
+    def send_sms(phone):
+        account_sid = os.getenv('TWILIO_ACCOUNT_SID')
+        auth_token = os.getenv('TWILIO_AUTH_TOKEN')
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+            body='this is a test',
+            messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
+            to=phone
+        )
+        print(message)
+        return message.sid
+
+    def send_email(email):
+        message = Mail(
+            from_email='notifications@coronalert.app',
+            to_emails=email,
+            subject='CoronAlert Daily Notifications',
+            html_content='this is a test'
+        )
+        try:
+            sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+            response = sg.send(message)
+        except Exception as e:
+            print(e)
+
+        return "success"
+
+    def send_notifications():
+        pass
 
     @app.route('/login', methods=['GET','POST'])
     def login():
@@ -76,12 +113,12 @@ def create_app():
     @app.route('/subscribe')
     def subscribe():
         # can structure this to allow delete or addition
-        return true
+        return True
 
     @app.route('/location')
     def get():
         # I was thinking if it gets a query string it can filter, if not it returns the whole list
-        return true
+        return True
 
     return app
 
