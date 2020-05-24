@@ -159,16 +159,9 @@ def create_app():
 
             return { 'status': 204, 'message': 'Update successful'}
 
-
     @app.route('/locations')
     def location():
-        locations = []
-
-        for loc in mongo.covalert.locations.find():
-            del loc['_id']
-            locations.append(loc)
-
-        return { "status ": 200, "locations": locations }
+        return dict(locations=[dict(code=state.abbr, name=state.name) for state in us.states.STATES], status=200), 200
 
     @app.route('/user', methods=['GET'])
     def user():
