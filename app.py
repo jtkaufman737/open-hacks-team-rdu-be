@@ -282,12 +282,11 @@ def create_app():
     @app.route('/user/subscriptions/current', methods=['GET'])
     def user_subscription_current_data():
         try:
-            user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
+            user = mongo.covalert.users.find_one({ 'username': session['user']['username'] })
             subs = user['subscriptions']
-            sub_data = [get_current_single_state_data(sub) for sub in subs]
-            response = { 'data': sub_data }
-            status_code = 200
-            return response, status_code
+            sub_data = [get_current_single_state_data(sub)[0] for sub in subs]
+            response = jsonify(sub_data)
+            return response
         except Exception as e:
             status_code = 500
             response = { 'message': e }
