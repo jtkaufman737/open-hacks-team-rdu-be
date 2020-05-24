@@ -62,8 +62,7 @@ def create_app():
                 return { 'status': 200, 'message': 'Logged in' }
             else:
                 return { 'status': 401, 'message':  'Invalid Credentials' }
-
-        if request.method == 'POST':
+        else:
             user = mongo.covalert.users.find_one({ 'username': json['username'] })
 
             # user input plaintext, checks against hashed db version
@@ -85,11 +84,8 @@ def create_app():
 
         json['notifications'] = []
 
-        if json['textEnabled']:
-            json['notifications'].append('sms')
-
-        if json['emailEnabled']:
-            json['notifications'].append('email')
+        if json['textEnabled']: json['notifications'].append('sms')
+        if json['emailEnabled']: json['notifications'].append('email')
 
         # Clean up data not used by db
         del json['textEnabled']
@@ -110,10 +106,41 @@ def create_app():
     def logout():
         session.pop('username', None)
 
-    @app.route('/subscribe')
-    def subscribe():
-        # can structure this to allow delete or addition
-        return True
+    @app.route('/subscribe/<identifier>', methods=['POST','PATCH'])
+    def process_subscriptions(identifier):
+        print(identifier)
+        if identifier == 'locations':
+            json = { 'username' : 'jtkaufman737', 'loc_id':'MD' }
+
+            if request.method == 'PATCH':
+                mongo.covalert.users.update(
+                  { 'username' : json['username'] },
+                  { '$pull': { 'subscriptions': json['loc_id']}}
+                )
+
+                return 'sfakfdsf'
+            else:
+                mongo.covalert.users.update(
+                  { 'username' : json['username'] },
+                  { '$push': { 'subscriptions': json['loc_id']}}
+                )
+
+            return { 'status': 204, 'message': 'Update successful'}
+        else:
+            json = { 'username' : 'jtkaufman737', 'textEnabled': False, 'emailEnabled': False }
+            notifications = []
+
+            if json['textEnabled']: notifications.append('sms')
+            if json['emailEnabled']: notifications.append('email')
+
+            if request.method == 'PATCH':
+                mongo.covalert.users.update(
+                  { 'username': json['username'] },
+                  { '$set': { 'notifications': notifications }}
+                )
+
+            return { 'status': 204, 'message': 'Update successful'}
+
 
     @app.route('/locations')
     def get():
