@@ -15,7 +15,6 @@ from flask_login import current_user, login_user, logout_user, login_required, L
 from flask_pymongo import MongoClient
 from User import User
 
-
 def create_app():
     app = Flask(__name__)
     load_dotenv()
@@ -54,6 +53,25 @@ def create_app():
 
     def send_notifications():
         pass
+
+    @app.route('/digest', methods=['GET'])
+    def digest():
+        try:
+            users = []
+            for usr in mongo.covalert.users.find():
+                del usr['_id']
+                users.append(usr)
+                print(usr['email'])
+
+                for sub in usr['subscriptions']:
+                    print(sub)
+
+
+            response = { 'status_code': 200, 'data': users }
+            return response
+        except Exception as e:
+            print(e)
+            return e
 
     @login.user_loader # I thought this was redundant and I'd be able to get rid of it, apparently not
     def load_user(user):
@@ -231,9 +249,20 @@ def create_app():
             status_code = 401
             return response, status_code
 
-    @app.route('/user/subscriptions/current')
+    @app.route('/user/subscriptions/current', methods=['GET'])
     def user_subscription_current_data():
-        print(user())
+        try:
+            user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
+            subs = user['subscriptions']
+            sub_data = [get_current_single_state_data(sub) for sub in subs]
+            response = { 'data': sub_data }
+            status_code = 200
+            return response, status_code
+        except Exception as e:
+            status_code = 500
+            response = { 'message': e }
+            return response, status_code 
+
 
     return app
 
