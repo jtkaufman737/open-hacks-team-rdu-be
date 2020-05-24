@@ -24,18 +24,24 @@ def create_app():
 
     login = LoginManager(app)
 
-    def send_sms(phone, msg):
+    def send_sms(phone, subscriptions):
         try:
             account_sid = os.getenv('TWILIO_ACCOUNT_SID')
             auth_token = os.getenv('TWILIO_AUTH_TOKEN')
             client = Client(account_sid, auth_token)
-            # message = client.messages.create(
-            #     body='this is a test',
-            #     messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
-            #     to=phone
-            # )
+            msg_body = f'Hello! Here is your daily COVID tracking digest: \n\n'
+            for sub in subscriptions:
+                sub_data = get_current_single_state_data(sub)[0]
+                # build subscription data
+                msg_body += f"State: {sub_data['state_name']}\n"
+                msg_body += f"Positive Tests: {sub_data['positive_tests']}\n"
+                msg_body += f"Recovered: {sub_data['recovered']}\n"
+                msg_body += f"Total Tested: {sub_data['total_tested']}\n"
+                msg_body += f"Deaths: {sub_data['deaths']}\n\n"
+
+            msg_body += "As always from your friends at CoronAlert, stay safe and we'll have more news soon."
             message = client.messages.create(
-                body=msg,
+                body=msg_body,
                 messaging_service_sid=os.getenv('TWILIO_SERVICE_SID'),
                 to=phone
             )
@@ -45,20 +51,37 @@ def create_app():
             print(e)
             return { 'status_code' : 500 }
 
-    def send_email(email):
+    def send_email(email, subscriptions):
+        msg_body = f'Hello! Here is your daily COVID tracking digest: <br/><br/>'
+        for sub in subscriptions:
+            sub_data = get_current_single_state_data(sub)[0]
+            # build subscription data
+            msg_body += f"State: {sub_data['state_name']}<br/>"
+            msg_body += f"Positive Tests: {sub_data['positive_tests']}<br/>"
+            msg_body += f"Recovered: {sub_data['recovered']}<br/>"
+            msg_body += f"Total Tested: {sub_data['total_tested']}<br/>"
+            msg_body += f"Deaths: {sub_data['deaths']}<br/><br/>"
+
+        msg_body += "As always from your friends at CoronAlert, stay safe and we'll have more news soon."
         message = Mail(
-            from_email='notifications@coronalert.app',
+            from_email='notifications@ronalert.com',
             to_emails=email,
             subject='CoronAlert Daily Notifications',
-            html_content='this is a test'
+            html_content=msg_body
         )
         try:
-            sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+            sg = SendGridAPIClient(api_key=os.getenv('SENDGRID_API_KEY'))
             response = sg.send(message)
         except Exception as e:
             print(e)
 
-        return "success"
+        response = sg.client.mail.send.post(request_body=message.get())
+
+        return dict(
+            status=response.status_code,
+            body=response.body,
+            headers=response.headers
+        )
 
     def send_notifications():
         pass
@@ -66,20 +89,13 @@ def create_app():
     @app.route('/digest', methods=['GET']) # This would be the backdoor manual way to trigger alerts, not sure how Rick was going to do it
     def digest():
         try:
-            for usr in mongo.covalert.users.find():
-                message = f'Hello { usr["username"] }! Here is your daily COVID tracking digest: \n\n'
-                for sub in usr['subscriptions']:
-                    sub_data = get_current_single_state_data(sub)[0]
-                    # build subscription data
-                    message += f"State: { sub_data['state_name']}"
-                    message += f"Positive Tests: { sub_data['positive_tests'] }"
-                    message += f"Recovered: { sub_data['recovered'] }"
-                    message += f"Total Tested: { sub_data['total_tested'] }\n"
-
-                message += "As always from your friends at coronAlert, stay safe and we'll have more news soon."
-
+            for usr in mongo.covalert.users.find({'notifications': 'sms'}):
                 if len(usr['subscriptions']):
-                    send_sms(usr['phone'], message)
+                    send_sms(usr['phone'], usr['subscriptions'])
+
+            for usr in mongo.covalert.users.find({'notifications': 'email'}):
+                if len(usr['subscriptions']):
+                    send_email(usr['email'], usr['subscriptions'])
 
             response = { 'status_code': 200 }
             return response
