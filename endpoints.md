@@ -133,3 +133,20 @@ Can technically be empty
     }
 ]
 ```
+
+## /user
+
+#### GET 
+
+```
+{
+    "password": "pbkdf2:sha256:150000$UEdUCHcA$1b65a0482c2f7c7373562003d63f1290276620e780e91fb54126e7570e7d8dcc",
+    "phone": "9195924799",
+    "subscriptions": [
+        "AZ",
+        "HI",
+        "NJ"
+      ],
+      "username": "abc123"
+},
+```
