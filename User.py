@@ -5,8 +5,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User:
     def __init__(self, username, password):
+        print('Init running!')
+        print(username)
+        print(password)
         self.username = username
         self.password = password
+
+    def get_id(self, id):
+        return self.username
 
     @staticmethod
     def is_authenticated():
