@@ -183,6 +183,7 @@ def create_app():
     @app.route('/logout', methods=['POST'])
     def logout():
         logout_user()
+        del session['user']
         response = dict(message='OK')
         status_code=200
         return response, status_code
@@ -215,27 +216,20 @@ def create_app():
 
     @app.route('/locations')
     def location():
-        locations = []
-
-        for loc in mongo.covalert.locations.find():
-            del loc['_id']
-            locations.append(loc)
-
-        response = dict(message='Success')
-        status_code=200
-        return response, status_code
-
-    @app.route('/locations')
-    def location():
         return dict(locations=[dict(code=state.abbr, name=state.name) for state in us.states.STATES], status=200), 200
 
     @app.route('/user', methods=['GET'])
     def user():
-        user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
-        del user['_id']
-        response = { 'message': 'OK', 'data': user }
-        status_code = 200
-        return response, status_code
+        try:
+            user = mongo.covalert.users.find_one({ 'username': session['user']['username']})
+            del user['_id']
+            response = { 'message': 'OK', 'data': user }
+            status_code = 200
+            return response, status_code
+        except Exception:
+            response = dict(message='Error retrieving user. Please check that you are logged in')
+            status_code = 401
+            return response, status_code
 
     @app.route('/user/subscriptions/current')
     def user_subscription_current_data():
