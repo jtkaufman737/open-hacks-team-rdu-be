@@ -98,15 +98,6 @@ Doing patch instead of delete so we can receive multiple pieces of data
 
 ## /subscribe/alerts 
 
-#### POST 
-```
-{ 
-   username: ... 
-   textEnabled: ...
-   emailEnabled: ... 
- } 
-``` 
-
 #### PATCH
 ```
 { 
