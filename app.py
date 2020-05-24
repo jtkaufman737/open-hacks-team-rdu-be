@@ -161,7 +161,7 @@ def create_app():
 
             mongo.covalert.users.update(
               { 'username': session['user']['username'] },
-              { '$set': { 'notifications': notifications }}
+              { '$set': { 'notifications': request.notifications }}
             )
 
             response = dict(message='Update successful')
