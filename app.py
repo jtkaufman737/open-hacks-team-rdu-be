@@ -14,10 +14,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from flask_pymongo import MongoClient
 from User import User
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
     load_dotenv()
+    CORS(app)
     app.config.from_pyfile('settings.py')
 
     mongo = MongoClient(os.environ['MONGO_URI'], ssl=True,ssl_cert_reqs=ssl.CERT_NONE)
@@ -190,12 +192,12 @@ def create_app():
         try:
             request.json['notifications'] = []
 
-            if request.json['textEnabled']: request.json['notifications'].append('sms')
-            if request.json['emailEnabled']: request.json['notifications'].append('email')
+            # if request.json['textEnabled']: request.json['notifications'].append('sms')
+            # if request.json['emailEnabled']: request.json['notifications'].append('email')
 
             # Clean up data not used by db
-            del request.json['textEnabled']
-            del request.json['emailEnabled']
+            # del request.json['textEnabled']
+            # del request.json['emailEnabled']
 
             # Create user instance for session
             pwd = generate_password_hash(request.json['password'])
