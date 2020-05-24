@@ -6,7 +6,7 @@ import ssl
 import us
 
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from twilio.rest import Client
@@ -14,7 +14,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from flask_pymongo import MongoClient
 from User import User
-
 
 def create_app():
     app = Flask(__name__)
@@ -55,6 +54,11 @@ def create_app():
     def send_notifications():
         pass
 
+    @login.user_loader # I thought this was redundant and I'd be able to get rid of it, apparently not
+    def load_user(user):
+        usr = mongo.covalert.users.find_one({ 'username': user })
+        return usr
+
     @app.route('/current/<state>')
     def get_current_state_data(state):
         status_code = 400
@@ -89,6 +93,8 @@ def create_app():
 
             # user input plaintext, checks against hashed db version
             if user and User.check_password(user['password'], json['password']):
+                load_user(json['username'])
+                session['user'] = { 'username': json['username'] }
                 return { 'status': 200, 'message': 'Logged in'}
             else:
                 return { 'status': 401, 'message': 'Invalid Credentials'}
@@ -116,7 +122,7 @@ def create_app():
         # Create user instance for session
         pwd = generate_password_hash(json['password'])
         json['password'] = pwd
-        u = User(username=json['username'], password=pwd)
+        User(username=json['username'], password=pwd)
 
         try:
             mongo.covalert.users.insert(json)
@@ -126,46 +132,36 @@ def create_app():
 
     @app.route('/logout')
     def logout():
-        session.pop('username', None)
+        logout_user()
 
     @app.route('/subscribe/<identifier>', methods=['POST','PATCH'])
     def process_subscriptions(identifier):
-        print(identifier)
         if identifier == 'locations':
-            json = { 'username' : 'jtkaufman737', 'loc_id':'MD' }
+            json = { 'username' : current_user['username'], 'codes':['MD', 'NC', 'GA','CA'] }
 
-            if request.method == 'PATCH':
-                mongo.covalert.users.update(
-                  { 'username' : json['username'] },
-                  { '$pull': { 'subscriptions': json['loc_id']}}
-                )
-
-                return 'sfakfdsf'
-            else:
-                mongo.covalert.users.update(
-                  { 'username' : json['username'] },
-                  { '$push': { 'subscriptions': json['loc_id']}}
-                )
+            mongo.covalert.users.update(
+              { 'username' : json['username'] },
+              { '$set': { 'subscriptions': json['code'] }}
+            )
 
             return { 'status': 204, 'message': 'Update successful'}
         else:
-            json = { 'username' : 'jtkaufman737', 'textEnabled': False, 'emailEnabled': False }
+            json = { 'username' :  current_user['username'], 'textEnabled': True, 'emailEnabled': False }
             notifications = []
 
             if json['textEnabled']: notifications.append('sms')
             if json['emailEnabled']: notifications.append('email')
 
-            if request.method == 'PATCH':
-                mongo.covalert.users.update(
-                  { 'username': json['username'] },
-                  { '$set': { 'notifications': notifications }}
-                )
+            mongo.covalert.users.update(
+              { 'username': json['username'] },
+              { '$set': { 'notifications': notifications }}
+            )
 
             return { 'status': 204, 'message': 'Update successful'}
 
 
     @app.route('/locations')
-    def get():
+    def location():
         locations = []
 
         for loc in mongo.covalert.locations.find():
@@ -173,6 +169,10 @@ def create_app():
             locations.append(loc)
 
         return { "status ": 200, "locations": locations }
+
+    @app.route('/user', methods=['GET'])
+    def user():
+        return mongo.covalert.users.find_one({ 'username': current_user['username']})
 
     return app
 
