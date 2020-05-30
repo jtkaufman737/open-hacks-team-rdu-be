@@ -16,11 +16,6 @@ Here's an example text:
 - `cd open-hacks-team-rdu-be` 
 - If you wish, you can activate a virtual environment before installing dependencies 
 - `pip -r install requirements.txt` 
-- Reach out to the team and we can provide the .env files necessary to make this app run - it is bad security to commit them to a repo 
-and until the last minute we thought we would have time to deploy this for you live, but hit an unexpected last minute technical 
-snag in our deployment and running locally was the next best option we could come up with. We can pass the env files to you or demo 
-from one of our computers. We're sorry for the technical difficulty but really hope this doesn't interfere with our opportunity to be 
-judged 
 - run `flask run` and the frontend will be able to interact with the API 
 
 # Future Improvements 
