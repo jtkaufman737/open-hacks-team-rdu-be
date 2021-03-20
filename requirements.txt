@@ -10,7 +10,7 @@ idna==2.9
 ipaddress==1.0.23
 itsdangerous==1.1.0
 jellyfish==0.6.1
-Jinja2==2.11.2
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 PyJWT==1.7.1
 pymongo==3.10.1
